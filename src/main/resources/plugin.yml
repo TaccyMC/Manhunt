@@ -5,3 +5,7 @@ api-version: 1.16
 authors: [ ThatsFinn ]
 description: Manhunt Event Plugin
 website: https://taccy.net
+
+commands:
+  manhunt:
+    aliases: [mh]
