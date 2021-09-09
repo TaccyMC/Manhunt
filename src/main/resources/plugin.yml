@@ -1,0 +1,7 @@
+name: Manhunt
+version: '${project.version}'
+main: net.taccy.manhunt.Manhunt
+api-version: 1.16
+authors: [ ThatsFinn ]
+description: Manhunt Event Plugin
+website: https://taccy.net
