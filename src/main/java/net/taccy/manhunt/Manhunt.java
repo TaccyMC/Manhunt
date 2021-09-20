@@ -6,6 +6,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Manhunt extends JavaPlugin {
 
+    public static final String WORLD_NAME = "manhunt";
+
     private Game game;
 
     @Override
@@ -23,6 +25,7 @@ public final class Manhunt extends JavaPlugin {
 
     private void registerCommands() {
         getCommand("manhunt").setExecutor(new ManhuntCommand(this));
+        getCommand("manhunt").setTabCompleter(new ManhuntCommand(this));
     }
 
     private void registerListeners() {

@@ -6,6 +6,7 @@ import net.taccy.manhunt.utils.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class Game {
@@ -32,6 +33,28 @@ public class Game {
         MessageUtil.log(Level.INFO, "Game state update to " + state.getType().getDisplayName());
     }
 
+    public void join(UUID uuid) {
+        addToAlive(uuid);
+
+        Player p = getPlayer(uuid);
+        if (p == null) return;
+        p.sendMessage("You have joined the manhunt!");
+    }
+
+    public void leave(UUID uuid) {
+        Player p = getPlayer(uuid);
+        if (p == null) return;
+        p.sendMessage("You have left the manhunt game.");
+    }
+
+    public void addToAlive(UUID uuid) {
+
+    }
+
+    public void addToDead(UUID uuid) {
+
+    }
+
     public void broadcastMessage(String message) {
         Bukkit.getOnlinePlayers().forEach((Player player) -> {
             player.sendMessage(MessageUtil.color(message));
@@ -48,6 +71,10 @@ public class Game {
         Bukkit.getOnlinePlayers().forEach((Player player) -> {
             MessageUtil.sendActionBar(player, message);
         });
+    }
+
+    public Player getPlayer(UUID uuid) {
+        return Bukkit.getPlayer(uuid);
     }
 
 }
