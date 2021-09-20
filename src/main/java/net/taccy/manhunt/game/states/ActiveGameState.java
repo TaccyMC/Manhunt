@@ -12,6 +12,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -53,6 +56,7 @@ public class ActiveGameState extends GameState {
 
             player.teleport(new Location(game.getWorld(), x, y, z, 0, 0));
             game.unfreeze(player, true);
+            pl.cpm.giveCompass(player);
         } else if (alive) {
             // restore player
             player.sendMessage(Colorize.color("&6> &fYou've rejoined &6ThumbTac's Manhunt!"));
@@ -67,6 +71,27 @@ public class ActiveGameState extends GameState {
     @Override
     public void onPlayerLeave(Player player) {
 
+    }
+
+    @EventHandler
+    public void onKill(PlayerDeathEvent e) {
+        if (!(pl.getGame().getPlayers().contains(e.getEntity()))) return;
+        e.getDrops().removeIf((item) -> item.getType() == Material.COMPASS);
+        String newDeathMessage = "&c> ";
+        boolean first = true;
+        for (String word : e.getDeathMessage().split(" ")) {
+            if (Bukkit.getPlayer(word) != null) {
+                if (first) {
+                    newDeathMessage += "&c" + word + " &f";
+                    first = false;
+                } else {
+                    newDeathMessage += "&a" + word + " &f";
+                }
+            } else {
+                newDeathMessage += word + " ";
+            }
+        }
+        e.setDeathMessage(Colorize.color(newDeathMessage));
     }
 
     @Override

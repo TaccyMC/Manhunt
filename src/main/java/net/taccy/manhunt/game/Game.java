@@ -115,6 +115,10 @@ public class Game {
         return world;
     }
 
+    public GameState getState() {
+        return state;
+    }
+
     public List<Player> getPlayers() {
         return players;
     }

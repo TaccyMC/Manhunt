@@ -49,9 +49,11 @@ public class WaitingGameState extends GameState {
         } else if (alive) {
             // restore player
             game.setGameState(new ActiveGameState(game, pl));
+            game.getState().onPlayerJoin(player, true);
         } else {
             // restore spectator
             game.setGameState(new ActiveGameState(game, pl));
+            game.getState().onPlayerJoin(player, false);
         }
     }
 
