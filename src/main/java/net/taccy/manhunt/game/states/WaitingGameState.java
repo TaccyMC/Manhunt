@@ -46,6 +46,12 @@ public class WaitingGameState extends GameState {
 
             player.teleport(new Location(game.getWorld(), x, y, z, 0, 0));
             game.freeze(player, true);
+        } else if (alive) {
+            // restore player
+            game.setGameState(new ActiveGameState(game, pl));
+        } else {
+            // restore spectator
+            game.setGameState(new ActiveGameState(game, pl));
         }
     }
 

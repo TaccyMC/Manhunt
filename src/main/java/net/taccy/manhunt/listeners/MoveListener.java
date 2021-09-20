@@ -15,6 +15,7 @@ public class MoveListener implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
+        if (!(pl.getGame().getPlayers().contains(e.getPlayer()))) return;
         if (!(e.getPlayer().getWorld().getUID() == Manhunt.WORLD_UUID)) return;
         Object frozen = pl.cm.get(e.getPlayer().getUniqueId(), "frozen");
         if (frozen == null) return;

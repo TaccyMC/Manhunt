@@ -46,6 +46,7 @@ public class Game {
     }
 
     public void join(Player p) {
+        players.add(p);
         Object alive = pl.cm.get(p.getUniqueId(), "alive");
         if (alive == null) {
             state.onPlayerJoin(p, null);
@@ -56,6 +57,7 @@ public class Game {
     }
 
     public void leave(Player p) {
+        players.remove(p);
         p.sendMessage("You have left the manhunt game.");
         state.onPlayerLeave(p);
     }
@@ -111,6 +113,10 @@ public class Game {
 
     public World getWorld() {
         return world;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
     }
 
 }

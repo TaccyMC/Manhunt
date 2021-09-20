@@ -2,8 +2,10 @@ package net.taccy.manhunt;
 
 import net.taccy.manhunt.commands.ManhuntCommand;
 import net.taccy.manhunt.game.Game;
+import net.taccy.manhunt.listeners.CompassListener;
 import net.taccy.manhunt.listeners.JoinListener;
 import net.taccy.manhunt.listeners.MoveListener;
+import net.taccy.manhunt.managers.CompassManager;
 import net.taccy.manhunt.managers.ConfigManager;
 import net.taccy.manhunt.managers.TimingsManager;
 import org.bukkit.Bukkit;
@@ -13,13 +15,16 @@ import java.util.UUID;
 
 public final class Manhunt extends JavaPlugin {
 
-    public static final String WORLD_NAME = "manhunt";
+    public static final String WORLD_NAME = "world";
+    public static final String TARGET_NAME = "Flexibles";
+    public static final int COMPASS_SLOT = 8;
     public static UUID WORLD_UUID;
 
     private Game game;
 
     public ConfigManager cm = new ConfigManager(this);
     public TimingsManager tm = new TimingsManager(this);
+    public CompassManager cpm = new CompassManager(this);
 
     @Override
     public void onEnable() {
@@ -27,9 +32,9 @@ public final class Manhunt extends JavaPlugin {
 
         registerListeners();
         registerCommands();
+        registerRunnables();
 
         game = new Game(this);
-        tm.runTaskTimer(this, 0, 20);
     }
 
     @Override
@@ -45,6 +50,12 @@ public final class Manhunt extends JavaPlugin {
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
         getServer().getPluginManager().registerEvents(new MoveListener(this), this);
+        getServer().getPluginManager().registerEvents(new CompassListener(this), this);
+    }
+
+    private void registerRunnables() {
+        tm.runTaskTimer(this, 0, 20);
+        cpm.runTaskTimer(this, 0, 20);
     }
 
     public Game getGame() {

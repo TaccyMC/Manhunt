@@ -4,6 +4,7 @@ import net.taccy.manhunt.Manhunt;
 import net.taccy.manhunt.game.Game;
 import net.taccy.manhunt.game.GameState;
 import net.taccy.manhunt.game.GameStateType;
+import net.taccy.manhunt.managers.Freezer;
 import net.taccy.manhunt.utils.Colorize;
 import net.taccy.manhunt.utils.GenUtils;
 import org.bukkit.Bukkit;
@@ -12,9 +13,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 
 public class GraceGameState extends GameState {
@@ -26,8 +24,16 @@ public class GraceGameState extends GameState {
     @Override
     public void onEnable(Manhunt pl) {
         super.onEnable(pl);
-        game.setTimeLeft(20);
+        game.setTimeLeft(1);
         game.broadcastMessage("&a> &fStarted grace period!");
+    }
+
+    @Override
+    public void onDisable(Manhunt pl) {
+        super.onDisable(pl);
+        for (Player player : game.getPlayers()) {
+            Freezer.unfreeze(player, true);
+        }
     }
 
     @Override
@@ -50,16 +56,15 @@ public class GraceGameState extends GameState {
 
     @Override
     public void onPlayerLeave(Player player) {
-        player.sendMessage("waiting state leave!!!");
         Bukkit.getLogger().log(Level.INFO, player.getName() + " left the waiting world.");
     }
 
     @Override
     public void handleTick() {
-        game.broadcastActionbar("&d" + game.getTimeLeft() + " &fseconds remaining");
+        game.broadcastActionbar(game.getTimeLeft() + " seconds remaining");
 
         if (game.getTimeLeft() == 0) {
-
+            game.setGameState(new ActiveGameState(game, pl));
         }
     }
 
@@ -73,7 +78,7 @@ public class GraceGameState extends GameState {
         if (!(e.getDamager() instanceof Player)) return;
         if (!(e.getEntity() instanceof Player)) return;
 
-        if (!(e.getDamager().getWorld().getUID() == Manhunt.WORLD_UUID)) return;
+        if (!(pl.getGame().getPlayers().contains((Player) e.getDamager()))) return;
         e.setCancelled(true);
     }
 
