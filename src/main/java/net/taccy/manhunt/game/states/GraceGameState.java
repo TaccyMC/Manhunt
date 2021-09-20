@@ -12,23 +12,22 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 
-public class WaitingGameState extends GameState {
+public class GraceGameState extends GameState {
 
-    public WaitingGameState(Game game, Manhunt pl) {
+    public GraceGameState(Game game, Manhunt pl) {
         super(game, pl);
     }
 
     @Override
     public void onEnable(Manhunt pl) {
         super.onEnable(pl);
-        game.broadcastMessage("waiting started");
-    }
-
-    @Override
-    public void handleTick() {
-
+        game.setTimeLeft(20);
+        game.broadcastMessage("&a> &fStarted grace period!");
     }
 
     @Override
@@ -55,6 +54,20 @@ public class WaitingGameState extends GameState {
         Bukkit.getLogger().log(Level.INFO, player.getName() + " left the waiting world.");
     }
 
+    @Override
+    public void handleTick() {
+        game.broadcastActionbar("&d" + game.getTimeLeft() + " &fseconds remaining");
+
+        if (game.getTimeLeft() == 0) {
+
+        }
+    }
+
+    @Override
+    public GameStateType getType() {
+        return GameStateType.GRACE;
+    }
+
     @EventHandler
     public void onHit(EntityDamageByEntityEvent e) {
         if (!(e.getDamager() instanceof Player)) return;
@@ -62,11 +75,6 @@ public class WaitingGameState extends GameState {
 
         if (!(e.getDamager().getWorld().getUID() == Manhunt.WORLD_UUID)) return;
         e.setCancelled(true);
-    }
-
-    @Override
-    public GameStateType getType() {
-        return GameStateType.WAITING;
     }
 
 }

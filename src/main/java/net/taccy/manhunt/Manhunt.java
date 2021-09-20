@@ -5,6 +5,7 @@ import net.taccy.manhunt.game.Game;
 import net.taccy.manhunt.listeners.JoinListener;
 import net.taccy.manhunt.listeners.MoveListener;
 import net.taccy.manhunt.managers.ConfigManager;
+import net.taccy.manhunt.managers.TimingsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -18,6 +19,7 @@ public final class Manhunt extends JavaPlugin {
     private Game game;
 
     public ConfigManager cm = new ConfigManager(this);
+    public TimingsManager tm = new TimingsManager(this);
 
     @Override
     public void onEnable() {
@@ -27,6 +29,7 @@ public final class Manhunt extends JavaPlugin {
         registerCommands();
 
         game = new Game(this);
+        tm.runTaskTimer(this, 0, 20);
     }
 
     @Override

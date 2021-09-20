@@ -24,6 +24,7 @@ public class JoinListener implements Listener {
     public void onJoin(PlayerJoinEvent e) {
         if (!(e.getPlayer().getWorld().getUID() == Manhunt.WORLD_UUID)) return;
         pl.getGame().join(e.getPlayer());
+        e.setJoinMessage("");
     }
 
     @EventHandler
@@ -38,6 +39,7 @@ public class JoinListener implements Listener {
         if (!(e.getPlayer().getWorld().getUID() == Manhunt.WORLD_UUID)) return;
         pl.getGame().leave(e.getPlayer());
         pl.getGame().unfreeze(e.getPlayer(), false);
+        e.setQuitMessage("");
     }
 
 }

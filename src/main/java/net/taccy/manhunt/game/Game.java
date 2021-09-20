@@ -21,6 +21,7 @@ public class Game {
     private Boolean paused = false;
     private GameState state;
     private World world;
+    private int timeLeft = 0;
 
     private List<Player> players = new ArrayList<>();
 
@@ -69,6 +70,15 @@ public class Game {
         Freezer.unfreeze(p, resets);
     }
 
+    public void tickEvent() {
+        if (!paused) {
+            state.handleTick();
+            if (timeLeft > 0) {
+                timeLeft--;
+            }
+        }
+    }
+
     public void broadcastMessage(String message) {
         Bukkit.getOnlinePlayers().forEach((Player player) -> {
             player.sendMessage(MessageUtil.color(message));
@@ -85,6 +95,14 @@ public class Game {
         Bukkit.getOnlinePlayers().forEach((Player player) -> {
             MessageUtil.sendActionBar(player, message);
         });
+    }
+
+    public void setTimeLeft(int timeLeft) {
+        this.timeLeft = timeLeft;
+    }
+
+    public int getTimeLeft() {
+        return timeLeft;
     }
 
     public Player getPlayer(UUID uuid) {
