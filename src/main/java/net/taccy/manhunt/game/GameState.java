@@ -1,6 +1,7 @@
 package net.taccy.manhunt.game;
 
 import net.taccy.manhunt.Manhunt;
+import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 
@@ -18,6 +19,9 @@ public abstract class GameState implements Listener {
     public void onDisable(Manhunt pl) {
         HandlerList.unregisterAll(this);
     }
+
+    public abstract void onPlayerJoin(Player player, Boolean alive);
+    public abstract void onPlayerLeave(Player player);
 
     public abstract void handleTick();
     public abstract GameStateType getType();

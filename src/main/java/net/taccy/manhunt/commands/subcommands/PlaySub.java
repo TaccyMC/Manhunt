@@ -37,7 +37,7 @@ public class PlaySub extends SubCommand {
         }
 
         Player p = (Player) sender;
-        pl.getGame().join(p.getUniqueId());
+        pl.getGame().join(p);
     }
 
 }

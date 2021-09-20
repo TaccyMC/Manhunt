@@ -2,10 +2,16 @@ package net.taccy.manhunt.game;
 
 import net.taccy.manhunt.Manhunt;
 import net.taccy.manhunt.game.states.WaitingGameState;
+import net.taccy.manhunt.managers.Freezer;
 import net.taccy.manhunt.utils.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.World;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -14,8 +20,13 @@ public class Game {
     private Manhunt pl;
     private Boolean paused = false;
     private GameState state;
+    private World world;
+
+    private List<Player> players = new ArrayList<>();
 
     public Game(Manhunt pl) {
+        world = Bukkit.getWorld(Manhunt.WORLD_NAME);
+
         this.pl = pl;
         broadcastMessage("Game has been created");
 
@@ -33,26 +44,29 @@ public class Game {
         MessageUtil.log(Level.INFO, "Game state update to " + state.getType().getDisplayName());
     }
 
-    public void join(UUID uuid) {
-        addToAlive(uuid);
+    public void join(Player p) {
+        Object alive = pl.cm.get(p.getUniqueId(), "alive");
+        if (alive == null) {
+            state.onPlayerJoin(p, null);
+            return;
+        }
 
-        Player p = getPlayer(uuid);
-        if (p == null) return;
-        p.sendMessage("You have joined the manhunt!");
+        state.onPlayerJoin(p, (boolean) alive);
     }
 
-    public void leave(UUID uuid) {
-        Player p = getPlayer(uuid);
-        if (p == null) return;
+    public void leave(Player p) {
         p.sendMessage("You have left the manhunt game.");
+        state.onPlayerLeave(p);
     }
 
-    public void addToAlive(UUID uuid) {
-
+    public void freeze(Player p, boolean clearInv) {
+        pl.cm.set(p.getUniqueId(), "frozen", true);
+        Freezer.freeze(p, clearInv);
     }
 
-    public void addToDead(UUID uuid) {
-
+    public void unfreeze(Player p,boolean resets) {
+        pl.cm.set(p.getUniqueId(), "frozen", false);
+        Freezer.unfreeze(p, resets);
     }
 
     public void broadcastMessage(String message) {
@@ -75,6 +89,10 @@ public class Game {
 
     public Player getPlayer(UUID uuid) {
         return Bukkit.getPlayer(uuid);
+    }
+
+    public World getWorld() {
+        return world;
     }
 
 }
