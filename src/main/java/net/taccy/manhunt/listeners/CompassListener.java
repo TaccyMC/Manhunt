@@ -19,7 +19,6 @@ public class CompassListener implements Listener {
     // cancel dropping compass
     @EventHandler
     public void onDrop(PlayerDropItemEvent e) {
-        if (!(pl.getGame().getPlayers().contains(e.getPlayer()))) return;
         if (!(e.getItemDrop().getItemStack().getType() == Material.COMPASS)) return;
         e.setCancelled(true);
     }
@@ -27,7 +26,6 @@ public class CompassListener implements Listener {
     // cancel moving compass in inventory
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (!(pl.getGame().getPlayers().contains(e.getWhoClicked()))) return;
         if (!(e.getSlot() == Manhunt.COMPASS_SLOT)) return;
         e.setCancelled(true);
     }
@@ -35,7 +33,6 @@ public class CompassListener implements Listener {
     // cancel swapping compass to offhand
     @EventHandler
     public void swapItem(PlayerSwapHandItemsEvent e) {
-        if (!(pl.getGame().getPlayers().contains(e.getPlayer()))) return;
         if (!(e.getPlayer().getInventory().getHeldItemSlot() == Manhunt.COMPASS_SLOT)) return;
         e.setCancelled(true);
     }

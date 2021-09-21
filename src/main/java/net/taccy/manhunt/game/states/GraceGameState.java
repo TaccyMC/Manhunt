@@ -4,6 +4,7 @@ import net.taccy.manhunt.Manhunt;
 import net.taccy.manhunt.game.Game;
 import net.taccy.manhunt.game.GameState;
 import net.taccy.manhunt.game.GameStateType;
+import net.taccy.manhunt.game.player.ManhuntPlayer;
 import net.taccy.manhunt.managers.Freezer;
 import net.taccy.manhunt.utils.Colorize;
 import net.taccy.manhunt.utils.GenUtils;
@@ -24,39 +25,39 @@ public class GraceGameState extends GameState {
     @Override
     public void onEnable(Manhunt pl) {
         super.onEnable(pl);
-        game.setTimeLeft(1);
+        game.setTimeLeft(15);
         game.broadcastMessage("&a> &fStarted grace period!");
     }
 
     @Override
     public void onDisable(Manhunt pl) {
         super.onDisable(pl);
-        for (Player player : game.getPlayers()) {
-            Freezer.unfreeze(player, true);
+        for (ManhuntPlayer mp : game.getOnlinePlayers()) {
+            Freezer.unfreeze(mp.getPlayer(), true);
         }
     }
 
     @Override
-    public void onPlayerJoin(Player player, Boolean alive) {
-        if (alive == null) {
+    public void onPlayerJoin(ManhuntPlayer mp) {
+        if (mp.isAlive() == null) {
             // new player
-            player.sendMessage(Colorize.color("&6> &fWelcome to &6ThumbTac's Manhunt!"));
-            player.sendMessage(Colorize.color("&a> &fThe game will start shortly!"));
-            player.sendMessage(Colorize.color("&b[!] &7Tip: Use &b/manhunt help &7if you need assistance."));
-            Bukkit.getLogger().log(Level.INFO, player.getName() + " joined and is waiting.");
+            mp.sendMessage(Colorize.color("&6> &fWelcome to &6ThumbTac's Manhunt!"));
+            mp.sendMessage(Colorize.color("&a> &fThe game will start shortly!"));
+            mp.sendMessage(Colorize.color("&b[!] &7Tip: Use &b/manhunt help &7if you need assistance."));
+            Bukkit.getLogger().log(Level.INFO, mp.getName() + " joined and is waiting.");
 
             int x = game.getWorld().getSpawnLocation().getBlockX() + GenUtils.generateRandom(-30, 30);
             int z = game.getWorld().getSpawnLocation().getBlockZ() + GenUtils.generateRandom(-30, 30);
             int y = game.getWorld().getHighestBlockAt(x, z).getY() + 30;
 
-            player.teleport(new Location(game.getWorld(), x, y, z, 0, 0));
-            game.freeze(player, true);
+            mp.getPlayer().teleport(new Location(game.getWorld(), x, y, z, 0, 0));
+            game.freeze(mp, true);
         }
     }
 
     @Override
-    public void onPlayerLeave(Player player) {
-        Bukkit.getLogger().log(Level.INFO, player.getName() + " left the waiting world.");
+    public void onPlayerLeave(ManhuntPlayer mp) {
+        Bukkit.getLogger().log(Level.INFO, mp.getName() + " left the waiting world.");
     }
 
     @Override
@@ -78,7 +79,7 @@ public class GraceGameState extends GameState {
         if (!(e.getDamager() instanceof Player)) return;
         if (!(e.getEntity() instanceof Player)) return;
 
-        if (!(pl.getGame().getPlayers().contains((Player) e.getDamager()))) return;
+        if (!(e.getDamager().getWorld().getUID() == Manhunt.WORLD_UUID)) return;
         e.setCancelled(true);
     }
 

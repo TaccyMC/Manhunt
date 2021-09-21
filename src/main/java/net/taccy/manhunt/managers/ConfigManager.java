@@ -22,12 +22,12 @@ public class ConfigManager {
     public ConfigManager(Manhunt pl) {
         this.pl = pl;
 
-        this.dataFile = new File(pl.getDataFolder(), "data.yml");
-        this.dataConfiguration = new YamlConfiguration();
+        dataFile = new File(pl.getDataFolder(), "data.yml");
+        dataConfiguration = new YamlConfiguration();
 
         // loading config could throw errors so try catch
         try {
-            this.dataConfiguration.load(this.dataFile);
+            dataConfiguration.load(this.dataFile);
         } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
         }

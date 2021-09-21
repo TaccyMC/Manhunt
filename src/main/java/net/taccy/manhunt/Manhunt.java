@@ -16,7 +16,7 @@ import java.util.UUID;
 public final class Manhunt extends JavaPlugin {
 
     public static final String WORLD_NAME = "world";
-    public static final String TARGET_NAME = "Flexibles";
+    public static String TARGET_NAME = "ThumbTac_";
     public static final int COMPASS_SLOT = 8;
     public static UUID WORLD_UUID;
 

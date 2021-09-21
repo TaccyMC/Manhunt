@@ -4,21 +4,23 @@ import net.taccy.manhunt.Manhunt;
 import net.taccy.manhunt.game.Game;
 import net.taccy.manhunt.game.GameState;
 import net.taccy.manhunt.game.GameStateType;
-import net.taccy.manhunt.managers.Freezer;
+import net.taccy.manhunt.game.player.ManhuntPlayer;
 import net.taccy.manhunt.utils.Colorize;
 import net.taccy.manhunt.utils.GenUtils;
-import net.taccy.manhunt.utils.ItemBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.World;
 
-import java.util.Arrays;
 import java.util.logging.Level;
 
 public class ActiveGameState extends GameState {
@@ -33,65 +35,58 @@ public class ActiveGameState extends GameState {
         game.setTimeLeft(20);
         game.broadcastMessage("&a> &fThe game has started!");
 
-        for (Player p : game.getPlayers()) {
-            pl.cm.set(p.getUniqueId(), "frozen", false);
-            pl.cm.set(p.getUniqueId(), "alive", true);
-            pl.cpm.giveCompass(p);
-            p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20 * 4, 255, true, false));
+        for (ManhuntPlayer mp : game.getOnlinePlayers()) {
+            game.unfreeze(mp, true);
+            pl.cpm.giveCompass(mp.getPlayer());
+            mp.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20 * 4, 255, true, false));
+            mp.setAlive(true);
+            Bukkit.getLogger().log(Level.INFO, "set " + mp.getName() + " alive to " + mp.isAlive());
         }
     }
 
     @Override
-    public void onPlayerJoin(Player player, Boolean alive) {
-        if (alive == null) {
+    public void onPlayerJoin(ManhuntPlayer mp) {
+        if (mp.isAlive() == null) {
             // new player
-            player.sendMessage(Colorize.color("&6> &fWelcome to &6ThumbTac's Manhunt!"));
-            player.sendMessage(Colorize.color("&d> &fYou've joined mid game!"));
-            player.sendMessage(Colorize.color("&b[!] &7Tip: Use &b/manhunt help &7if you need assistance."));
-            Bukkit.getLogger().log(Level.INFO, player.getName() + " joined mid game");
+            mp.sendMessage(Colorize.color("&6> &fWelcome to &6ThumbTac's Manhunt!"));
+            mp.sendMessage(Colorize.color("&d> &fYou've joined mid game!"));
+            mp.sendMessage(Colorize.color("&b[!] &7Tip: Use &b/manhunt help &7if you need assistance."));
+            Bukkit.getLogger().log(Level.INFO, mp.getName() + " joined mid game");
 
             int x = game.getWorld().getSpawnLocation().getBlockX() + GenUtils.generateRandom(-30, 30);
             int z = game.getWorld().getSpawnLocation().getBlockZ() + GenUtils.generateRandom(-30, 30);
-            int y = game.getWorld().getHighestBlockAt(x, z).getY();
+            int y = game.getWorld().getHighestBlockAt(x, z).getY() + 1; // + 1 so not in floor
 
-            player.teleport(new Location(game.getWorld(), x, y, z, 0, 0));
-            game.unfreeze(player, true);
-            pl.cpm.giveCompass(player);
-        } else if (alive) {
+            mp.getPlayer().teleport(new Location(game.getWorld(), x, y, z, 0, 0));
+            mp.setAlive(true);
+            game.unfreeze(mp, true);
+            pl.cpm.giveCompass(mp.getPlayer());
+        } else if (mp.isAlive()) {
             // restore player
-            player.sendMessage(Colorize.color("&6> &fYou've rejoined &6ThumbTac's Manhunt!"));
-            player.sendMessage(Colorize.color("&d> &fYou are currently &dalive."));
+            mp.sendMessage(Colorize.color("&6> &fYou've rejoined &6ThumbTac's Manhunt!"));
+            mp.sendMessage(Colorize.color("&d> &fYou are currently &dalive."));
         } else {
             // restore spectator
-            player.sendMessage(Colorize.color("&6> &fYou've rejoined &6ThumbTac's Manhunt!"));
-            player.sendMessage(Colorize.color("&d> &fYou are currently &da spectator."));
+            mp.sendMessage(Colorize.color("&6> &fYou've rejoined &6ThumbTac's Manhunt!"));
+            mp.sendMessage(Colorize.color("&d> &fYou are currently &da spectator."));
+            mp.getPlayer().setGameMode(GameMode.SPECTATOR);
         }
     }
 
     @Override
-    public void onPlayerLeave(Player player) {
+    public void onPlayerLeave(ManhuntPlayer mp) {
 
     }
 
     @EventHandler
-    public void onKill(PlayerDeathEvent e) {
-        if (!(pl.getGame().getPlayers().contains(e.getEntity()))) return;
-        e.getDrops().removeIf((item) -> item.getType() == Material.COMPASS);
-        String newDeathMessage = "&c> ";
-        boolean first = true;
-        for (String word : e.getDeathMessage().split(" ")) {
-            if (Bukkit.getPlayer(word) != null) {
-                if (first) {
-                    newDeathMessage += "&c" + word + " &f";
-                    first = false;
-                } else {
-                    newDeathMessage += "&a" + word + " &f";
-                }
-            } else {
-                newDeathMessage += word + " ";
-            }
-        }
-        e.setDeathMessage(Colorize.color(newDeathMessage));
+    public void onKill(EntityDamageEvent e) {
+        if (!(e.getEntity() instanceof Player)) return;
+        Player p = (Player) e.getEntity();
+        if (!(p.getHealth() - e.getFinalDamage() <= 0)) return;
+        ManhuntPlayer mp = game.getOnlinePlayer(e.getEntity().getUniqueId());
+        if (mp == null) return;
+        e.setCancelled(true);
+        game.kill(null, mp);
     }
 
     @Override
@@ -102,6 +97,24 @@ public class ActiveGameState extends GameState {
     @Override
     public GameStateType getType() {
         return GameStateType.ACTIVE;
+    }
+
+    private String colorizeKillMessage(String string) {
+        StringBuilder newMessage = new StringBuilder();
+        boolean first = true;
+        for (String word : string.split(" ")) {
+            if (Bukkit.getPlayer(word) != null) {
+                if (first) {
+                    newMessage.append("&c").append(word).append(" &f");
+                    first = false;
+                } else {
+                    newMessage.append("&a").append(word).append(" &f");
+                }
+            } else {
+                newMessage.append(word).append(" ");
+            }
+        }
+        return Colorize.color(newMessage.toString());
     }
 
 }

@@ -1,17 +1,21 @@
 package net.taccy.manhunt.game;
 
 import net.taccy.manhunt.Manhunt;
+import net.taccy.manhunt.game.player.ManhuntPlayer;
 import net.taccy.manhunt.game.states.WaitingGameState;
 import net.taccy.manhunt.managers.Freezer;
+import net.taccy.manhunt.utils.Colorize;
 import net.taccy.manhunt.utils.MessageUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -23,7 +27,8 @@ public class Game {
     private World world;
     private int timeLeft = 0;
 
-    private List<Player> players = new ArrayList<>();
+    private List<ManhuntPlayer> onlinePlayers = new ArrayList<>();
+    private List<ManhuntPlayer> offlinePlayers = new ArrayList<>();
 
     public Game(Manhunt pl) {
         world = Bukkit.getWorld(Manhunt.WORLD_NAME);
@@ -46,30 +51,60 @@ public class Game {
     }
 
     public void join(Player p) {
-        players.add(p);
-        Object alive = pl.cm.get(p.getUniqueId(), "alive");
-        if (alive == null) {
-            state.onPlayerJoin(p, null);
-            return;
+        ManhuntPlayer mp = getOfflinePlayer(p.getUniqueId());
+        if (mp == null) {
+            mp = new ManhuntPlayer(p);
+            onlinePlayers.add(mp);
+        } else {
+            offlinePlayers.remove(mp);
+            onlinePlayers.add(mp);
+            mp.setName(p.getName());
+            mp.setPlayer(p);
+            // todo: set skin (grab from Mojang in separate thread)
         }
-
-        state.onPlayerJoin(p, (boolean) alive);
+        state.onPlayerJoin(mp);
+        if (mp.isAlive() != null) {
+            broadcastMessage("&a+ &f" + mp.getName());
+        }
     }
 
     public void leave(Player p) {
-        players.remove(p);
-        p.sendMessage("You have left the manhunt game.");
-        state.onPlayerLeave(p);
+        ManhuntPlayer mp = getOnlinePlayer(p.getUniqueId());
+        if (mp == null) return;
+        onlinePlayers.remove(mp);
+        offlinePlayers.add(mp);
+        state.onPlayerLeave(mp);
+        unfreeze(mp, false);
+        mp.setPlayer(null);
+        if (mp.isAlive() != null) {
+            broadcastMessage("&c- &f" + mp.getName());
+        }
     }
 
-    public void freeze(Player p, boolean clearInv) {
-        pl.cm.set(p.getUniqueId(), "frozen", true);
-        Freezer.freeze(p, clearInv);
+    public void kill(ManhuntPlayer killer, ManhuntPlayer killed) {
+        killed.setAlive(false);
+        killed.getPlayer().setGameMode(GameMode.SPECTATOR);
+        dropItems(killed.getPlayer());
+        killed.getPlayer().getInventory().clear();
+        killed.getPlayer().getWorld().strikeLightningEffect(killed.getPlayer().getLocation());
+        killed.getPlayer().sendTitle(Colorize.color("&cYou died!"), "You're now a spectator.", 0, 50, 50);
+        String killMessage = "&c> &f";
+        if (killer == null) {
+            killMessage += killed.getName() + " has died!";
+        } else {
+            killMessage += killer.getName() + " has killed " + killed.getName();
+        }
+        broadcastMessage(Colorize.color(killMessage));
     }
 
-    public void unfreeze(Player p,boolean resets) {
-        pl.cm.set(p.getUniqueId(), "frozen", false);
-        Freezer.unfreeze(p, resets);
+    public void freeze(ManhuntPlayer mp, boolean clearInv) {
+        mp.setFrozen(true);
+        Freezer.freeze(mp.getPlayer(), clearInv);
+    }
+
+    public void unfreeze(ManhuntPlayer mp,boolean resets) {
+        mp.setFrozen(false);
+        Freezer.unfreeze(mp.getPlayer(), resets);
     }
 
     public void tickEvent() {
@@ -79,6 +114,30 @@ public class Game {
                 timeLeft--;
             }
         }
+    }
+
+    public ManhuntPlayer getOnlinePlayer(UUID uuid) {
+        for (ManhuntPlayer mp : onlinePlayers) {
+            if (mp.getUUID().compareTo(uuid) == 0) {
+                return mp;
+            }
+        }
+        return null;
+    }
+
+    public ManhuntPlayer getOfflinePlayer(UUID uuid) {
+        for (ManhuntPlayer mp : offlinePlayers) {
+            if (mp.getUUID().compareTo(uuid) == 0) {
+                return mp;
+            }
+        }
+        return null;
+    }
+
+    public Boolean isOnline(ManhuntPlayer mp) {
+        if (getOnlinePlayer(mp.getUUID()) != null) return true;
+        if (getOfflinePlayer(mp.getUUID()) != null) return false;
+        return null;
     }
 
     public void broadcastMessage(String message) {
@@ -99,6 +158,14 @@ public class Game {
         });
     }
 
+    private void dropItems(Player player) {
+        for (ItemStack item : player.getInventory()) {
+            if (item == null) continue;
+            if (item.getType() == Material.COMPASS) continue;
+            player.getWorld().dropItem(player.getLocation(), item);
+        }
+    }
+
     public void setTimeLeft(int timeLeft) {
         this.timeLeft = timeLeft;
     }
@@ -106,21 +173,14 @@ public class Game {
     public int getTimeLeft() {
         return timeLeft;
     }
-
-    public Player getPlayer(UUID uuid) {
-        return Bukkit.getPlayer(uuid);
-    }
-
     public World getWorld() {
         return world;
     }
-
     public GameState getState() {
         return state;
     }
-
-    public List<Player> getPlayers() {
-        return players;
+    public List<ManhuntPlayer> getOnlinePlayers() {
+        return onlinePlayers;
     }
 
 }

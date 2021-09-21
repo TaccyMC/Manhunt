@@ -1,6 +1,7 @@
 package net.taccy.manhunt.listeners;
 
 import net.taccy.manhunt.Manhunt;
+import net.taccy.manhunt.game.player.ManhuntPlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -15,10 +16,10 @@ public class MoveListener implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
-        if (!(pl.getGame().getPlayers().contains(e.getPlayer()))) return;
-        Object frozen = pl.cm.get(e.getPlayer().getUniqueId(), "frozen");
-        if (frozen == null) return;
-        if (!((boolean) frozen)) return;
+        ManhuntPlayer mp = pl.getGame().getOnlinePlayer(e.getPlayer().getUniqueId());
+        if (mp == null) return;
+        if (mp.isFrozen() == null) return;
+        if (!mp.isFrozen()) return;
         if (e.getFrom().getBlockX() != e.getTo().getBlockX() ||
             e.getFrom().getBlockY() != e.getTo().getBlockY() ||
             e.getFrom().getBlockZ() != e.getTo().getBlockZ()) {

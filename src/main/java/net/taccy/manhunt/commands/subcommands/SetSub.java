@@ -3,25 +3,24 @@ package net.taccy.manhunt.commands.subcommands;
 import net.taccy.manhunt.Manhunt;
 import net.taccy.manhunt.commands.SubCommand;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlaySub extends SubCommand {
+public class SetSub extends SubCommand {
 
-    public PlaySub(Manhunt pl) {
+    public SetSub(Manhunt pl) {
         super(pl);
     }
 
     @Override
     public String getName() {
-        return "play";
+        return "set";
     }
 
     @Override
     public String getPermission() {
-        return null;
+        return "manhunt.set";
     }
 
     @Override
@@ -31,15 +30,14 @@ public class PlaySub extends SubCommand {
 
     @Override
     public void handle(CommandSender sender, ArrayList<String> args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("The console cannot join the game :(");
+        if (args.size() == 0) {
+            sender.sendMessage("specify name");
             return;
         }
 
-        Player p = (Player) sender;
-        if (pl.getGame().getOnlinePlayer(p.getUniqueId()) != null) return;
-        if (pl.getGame().getOfflinePlayer(p.getUniqueId()) != null) return;
-        pl.getGame().join(p);
+        String name = args.get(0);
+        Manhunt.TARGET_NAME = name;
+        sender.sendMessage("Set target to " + name);
     }
 
 }

@@ -2,6 +2,7 @@ package net.taccy.manhunt.commands;
 
 import net.taccy.manhunt.Manhunt;
 import net.taccy.manhunt.commands.subcommands.PlaySub;
+import net.taccy.manhunt.commands.subcommands.SetSub;
 import net.taccy.manhunt.commands.subcommands.StartSub;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -21,6 +22,7 @@ public class ManhuntCommand implements CommandExecutor, TabCompleter {
 
         subcommands.add(new PlaySub(pl));
         subcommands.add(new StartSub(pl));
+        subcommands.add(new SetSub(pl));
     }
 
     private ArrayList<SubCommand> subcommands = new ArrayList<>();
